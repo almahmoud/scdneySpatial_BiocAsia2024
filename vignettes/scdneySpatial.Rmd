@@ -1,0 +1,51 @@
+---
+title: "Unlocking single cell spatial omics analyses with scdney"
+output:
+ rmarkdown::html_document:
+    toc: true
+    self_contained: true
+vignette: >
+  %\VignetteIndexEntry{Unlocking single cell spatial omics analyses with scdney}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  #collapse = TRUE,
+  #eval = FALSE,
+  comment = "#>",
+  cache = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+```{=html}
+<style>
+.question {
+  padding: 1em;
+  background: lightcyan;
+  color: black;
+  border-radius: 10px;
+}
+</style>
+```
+
+**Presenting Authors**
+
+Farhan Ameen$^{1,2,3}$, Alex Qin$^{1,2,3}$, Shreya Rao$^{1,2,3}$,
+Ellis Patrick$^{1,2,3}$.
+
+$^1$ Westmead Institute for Medical Research, University of Sydney,
+Australia\
+$^2$ Sydney Precision Data Science Centre, University of Sydney,
+Australia\
+$^3$ School of Mathematics and Statistics, University of Sydney,
+Australia
+
+<br/> Contact: ellis.patrick\@sydney.edu.au
