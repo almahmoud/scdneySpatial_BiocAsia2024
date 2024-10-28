@@ -127,9 +127,7 @@ library(simpleSeg)
 library(FuseSOM)
 library(lisaClust)
 library(spicyR)
-#library(Statial)
-devtools::load_all("~/Desktop/UNI/Phd/Projects/Statial")
-devtools::load_all("~/Desktop/UNI/Phd/Projects/spicyR")
+library(Statial)
 library(ClassifyR)
 
 # Other required packages
@@ -215,12 +213,75 @@ spe <- spe |>
 [Statial
 Package](https://www.bioconductor.org/packages/release/bioc/html/Statial.html)
 
-### SpatioMark
+### SpatioMark: Continuous changes in marker expression associated with varying levels of localisation.
+The first step in analysing these changes is to calculate the spatial proximity (`getDistances`) of each cell to every cell type. These values will then be stored in the `reducedDims` slot of the `SingleCellExperiment` object under the names distances. SpatioMark also provides functionality to look into proximal cell abundance using the `getAbundance()` function, which is further explored within the `Statial` package vignette
 
-```{r}
+
+```{r getDistances}
+spe <- getDistances(spe,
+  maxDist = 200,
+  nCores = nCores,
+  cellType = "cellType",
+  spatialCoords = c("x", "y")
+)
+```
+
+We can then visualise an example image, specified with `image = "F3"` and a particular marker interaction with cell type localisation. To visualise these changes, we specify two cell types with the `from` and `to` parameters, and a marker with the `marker` parameter (cell-cell-marker interactions). Here, we specify the changes in the marker podoplanin in `SC` as its localisation to `EP` increases or decreases, where we can observe that podoplanin decreases as its distance to the dense clump of tumour cells increases.
+
+
+```{r plotStateChange}
+p <- plotStateChanges(
+  cells = spe,
+  cellType = "cellType",
+  spatialCoords = c("x", "y"),
+  type = "distances",
+  image = "F3",
+  from = "SC",
+  to = "EP",
+  marker = "podoplanin",
+  size = 1,
+  shape = 19,
+  interactive = FALSE,
+  plotModelFit = FALSE,
+  method = "lm"
+)
+
+p
+```
+
+SpatioMark aims to holistically uncover all such significant relationships by looking at all interactions across all images. The `calcStateChanges()` function provided by Statial can be expanded for this exact purpose - by not specifying cell types, a marker, or an image, `calcStateChanges()` will examine the most significant correlations between distance and marker expression across the entire dataset.
+
+```{r stateChanges}
+state_dist <- calcStateChanges(
+  cells = spe,
+  cellType = "cellType",
+  type = "distances",
+  assay = 2,
+  nCores = nCores,
+  minCells = 100
+)
+
+head(state_dist[state_dist$imageID == "F3",], n = 10)
+```
+
+The results from our SpatioMark outputs can be converted from a `data.frame` to a `matrix`, using the `prepMatrix()` function. Note, the choice of extracting either the t-statistic or the coefficient of the linear regression can be specified using the `column = "tval"` parameter, with the coefficient being the default extracted parameter. We can see that with SpatioMark, we get some features which are significant after adjusting for FDR.
+
+```{r spatioMarkOutcome}
 # Preparing outcome vector
 outcome <- spe$group[!duplicated(spe$imageID)]
 names(outcome) <- spe$imageID[!duplicated(spe$imageID)]
+
+# Preparing features for Statial
+distMat <- prepMatrix(state_dist)
+
+distMat <- distMat[names(outcome), ]
+
+# Remove some very small values
+distMat <- distMat[, colMeans(abs(distMat) > 0.0001) > .8]
+
+survivalResults <- colTest(distMat, outcome, type = "ttest")
+
+head(survivalResults)
 ```
 
 ### Kontextual
@@ -270,6 +331,10 @@ load(system.file("extdata", "kontextual.rda", package = "ScdneySpatial"))
 ```{r}
 imageChoose = "H3"
 
+
+
+kontext
+
 spe |>
   colData() |>
   as.data.frame() |>
@@ -288,7 +353,7 @@ spe |>
 
 ```
 
-We can use the `spicyR::spicy` to test for associations between the `Kontextual` values and progression status. To do so we use the `alternateResult` arguement.
+We can use the `spicyR::spicy` to test for associations between the `Kontextual` values and progression status. To do so we use the `alternateResult` argument.
 
 ```{r kontextOutcome, fig.height = 5, fig.width = 10}
 # Converting Kontextual result into data matrix
