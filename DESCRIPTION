@@ -14,7 +14,17 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 Depends: 
-    Biobase
+    Biobase,
+    SpatialDatasets,
+    simpleSeg,
+    FuseSOM,
+    lisaClust,
+    spicyR,
+    Statial,
+    ClassifyR,
+    tidySingleCellExperiment,
+    tidyverse,
+    SingleCellExperiment
 Suggests: 
     knitr,
     rmarkdown,
@@ -23,3 +33,6 @@ URL: https://sydneybiox.github.io/scdneySpatial_BiocAsia2024/
 BugReports: https://github.com/SydneyBioX/scdneySpatial_BiocAsia2024/issues/new/choose
 VignetteBuilder: knitr
 DockerImage: ghcr.io/sydneybiox/scdneyspatial_biocasia2024:latest 
+
+
+
