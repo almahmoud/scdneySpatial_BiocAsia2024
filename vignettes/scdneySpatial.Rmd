@@ -527,6 +527,117 @@ scater::plotReducedDim(
 ```
 
 
+## spicyR: Test spatial relationships
+
+[spicyR package](https://www.bioconductor.org/packages/release/bioc/html/spicyR.html)
+
+Put simply, spicyR uses the L-function to determine localisation or dispersion between cell types. The L-function is an arbitrary measure of "closeness" between points, with larger values suggesting increased localisation or attraction, and lower values suggesting dispersion or avoidance between cell types.
+
+Here, we quantify spatial relationships using a combination of 10 radii from 10 to 100 by specifying `Rs = 1:10*10` and account for global tissue structure using `sigma = 50`. Further information on how to optimise these parameters can be found in the [vignette](https://bioconductor.org/packages/release/bioc/vignettes/spicyR/inst/doc/spicyR.html) and the spicyR [paper](https://doi.org/10.1093/bioinformatics/btac268).
+
+
+```{r}
+spicyTest <- spicy(cells,
+                  condition = "group",
+                  cellTypeCol = "cellType",
+                  imageIDCol = "imageID",
+                  Rs = 1:10*10,
+                  sigma = 50,
+                  BPPARAM = BPPARAM)
+
+topPairs(spicyTest, n = 10)
+```
+
+We can visualise these tests using `signifPlot` where we observe that cell type pairs appear to become less attractive (or avoid more) in the progression sample.
+
+```{r}
+# Visualise which relationships are changing the most.
+signifPlot(
+  spicyTest,
+  breaks = c(-1.5, 1.5, 0.5)
+)
+```
+
+`spicyR` also has functionality for plotting out individual pairwise relationships. We can first try look into whether the `SC` tumour cell type localises with the `GC` granular cell type, and whether this localisation affects progression vs non-progression of the tumour. 
+
+```{r}
+spicyBoxPlot(spicyTest, 
+             from = "SC", 
+             to = "GC")
+```
+
+Alternatively, we can look at the most differentially localised relationship between progressors and non-progressors by specifying `rank = 1`.
+
+```{r}
+spicyBoxPlot(spicyTest, 
+             rank = 1)
+```
+
+## lisaClust: Find cellular neighbourhoods
+
+[lisaClust package](https://www.bioconductor.org/packages/release/bioc/html/lisaClust.html)
+
+`lisaClust` provides a series of functions to identify and visualise regions of tissue where spatial associations between cell-types is similar. This package can be used to provide a high-level summary of cell-type co-localisation in multiplexed imaging data that has been segmented at a single-cell resolution. Here we use the `lisaClust` function to clusters cells into 5 regions with distinct spatial ordering. 
+
+```{r}
+set.seed(51773)
+
+cells <- lisaClust(
+  cells,
+  k = 4,
+  sigma = 50,
+  cellType = "cellType",
+  BPPARAM = BPPARAM
+)
+```
+
+### Region - cell type enrichment heatmap
+
+We can interpret which spatial orderings the regions are quantifying using the `regionMap` function. This plots the frequency of each cell type in a region relative to what you would expect by chance. We can see here that our regions have neatly separated according to biological milieu, with region 1 and 2 representing our immune cell regions, region 3 representing our tumour cells, and region 4 representing our healthy epithelial and endothelial cells.
+
+```{r}
+# Visualise the enrichment of each cell type in each region
+regionMap(cells, cellType = "cellType", limit = c(0.2, 2))
+```
+
+### Visualise regions
+
+By default, these identified regions are stored in the `regions` column in the `colData` of our `SpatialExperiment` object. We can quickly examine the spatial arrangement of these regions using `ggplot` on image F3, where we can see the same division of immune, healthy, and tumour tissue that we identified in our `regionMap`.
+
+```{r, message=FALSE, warning=FALSE}
+cells |> 
+  filter(imageID == "F3") |> 
+  plotReducedDim("spatialCoords", colour_by = "region")
+```
+
+While much slower, we have also implemented a function for overlaying the region information as a hatching pattern so that the information can be viewed simultaneously with the cell type calls.
+
+```{r}
+# Use hatching to visualise regions and cell types.
+hatchingPlot(
+  cells,
+  useImages = "F3",
+  cellType = "cellType",
+  nbp = 300
+)
+```
+
+### Test for association with progression
+
+Similar to cell type proportions, we can quickly use the `colTest` function to test for associations between the proportions of cells in each region and progression status by specifying `feature = "region"`.
+
+```{r}
+# Test if the proportion of each region is associated
+# with progression status.
+testRegion <- colTest(
+  cells,
+  feature = "region",
+  condition = "group",
+  type = "ttest")
+
+testRegion
+```
+
 ## Statial
 
 [Statial
