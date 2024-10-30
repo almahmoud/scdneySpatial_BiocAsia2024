@@ -126,6 +126,7 @@ BiocManager::install(c( "simpleSeg", "cytomapper", "scClassify", "scHOT", "FuseS
 ```{r library, warning=FALSE, message=FALSE}
 
 # packages from scdney
+library(scdneySpatialBiocAsia2024)
 library(SpatialDatasets)
 library(simpleSeg)
 library(FuseSOM)
@@ -144,6 +145,7 @@ theme_set(theme_classic())
 
 nCores <- 8  # Feel free to parallelise things if you have the cores to spare.
 BPPARAM <- simpleSeg:::generateBPParam(nCores)
+source(system.file("extdata", "utils.R", package = "scdneySpatialBiocAsia2024"))
 options("restore_SingleCellExperiment_show" = TRUE)
 
 ```
@@ -202,6 +204,8 @@ mcols(images)[["imageID"]] <- nam # Reassigning image names
 ```
 
 ## SimpleSeg: Segmentation
+
+[SimpleSeg Package](https://www.bioconductor.org/packages/release/bioc/html/simpleSeg.html)
 
 ### Run simpleSeg
 
@@ -326,10 +330,10 @@ We've made it easy to follow on from the normalisation section. Our `SpatialData
 
 ```{r data}
 #Download data now
-spe = SpatialDatasets::spe_Ferguson_2022()
+cells = SpatialDatasets::spe_Ferguson_2022()
 
-spe$x = spatialCoords(spe)[, "x"]
-spe$y = spatialCoords(spe)[, "y"]
+cells$x = spatialCoords(cells)[, "x"]
+cells$y = spatialCoords(cells)[, "y"]
 ```
 
 ### Normalise the data
@@ -393,7 +397,7 @@ This modified data is then stored in the `norm` assay by default. We can see tha
 useMarkers <- rownames(cells)[!rownames(cells) %in% c("DNA1", "DNA2", "HH3")]
 
 # Transform and normalise the marker expression of each cell type.
-cells <- normalizeCells(cells,
+cells <- simpleSeg::normalizeCells(cells,
                         markers = useMarkers,
                         transformation = NULL,
                         method = c("trim99", "mean", "PC1"),
@@ -432,6 +436,9 @@ scater::plotReducedDim(
 ```
 
 ## FuseSOM
+[FuseSOM Package](https://www.bioconductor.org/packages/release/bioc/html/FuseSOM.html)
+[FuseSOM Article](https://doi.org/10.1093/bioadv/vbad141)
+
 
 ### Perform the clustering
 
@@ -529,7 +536,7 @@ scater::plotReducedDim(
 
 ## spicyR: Test spatial relationships
 
-[spicyR package](https://www.bioconductor.org/packages/release/bioc/html/spicyR.html)
+[spicyR Package](https://www.bioconductor.org/packages/release/bioc/html/spicyR.html)
 
 Put simply, spicyR uses the L-function to determine localisation or dispersion between cell types. The L-function is an arbitrary measure of "closeness" between points, with larger values suggesting increased localisation or attraction, and lower values suggesting dispersion or avoidance between cell types.
 
@@ -552,10 +559,7 @@ We can visualise these tests using `signifPlot` where we observe that cell type 
 
 ```{r}
 # Visualise which relationships are changing the most.
-signifPlot(
-  spicyTest,
-  breaks = c(-1.5, 1.5, 0.5)
-)
+signifPlot(spicyTest)
 ```
 
 `spicyR` also has functionality for plotting out individual pairwise relationships. We can first try look into whether the `SC` tumour cell type localises with the `GC` granular cell type, and whether this localisation affects progression vs non-progression of the tumour. 
@@ -575,7 +579,9 @@ spicyBoxPlot(spicyTest,
 
 ## lisaClust: Find cellular neighbourhoods
 
-[lisaClust package](https://www.bioconductor.org/packages/release/bioc/html/lisaClust.html)
+[lisaClust Package](https://www.bioconductor.org/packages/release/bioc/html/lisaClust.html)
+[lisaClust Article](https://doi.org/10.1002/cyto.a.24729)
+
 
 `lisaClust` provides a series of functions to identify and visualise regions of tissue where spatial associations between cell-types is similar. This package can be used to provide a high-level summary of cell-type co-localisation in multiplexed imaging data that has been segmented at a single-cell resolution. Here we use the `lisaClust` function to clusters cells into 5 regions with distinct spatial ordering. 
 
@@ -640,15 +646,14 @@ testRegion
 
 ## Statial
 
-[Statial
-Package](https://www.bioconductor.org/packages/release/bioc/html/Statial.html)
+[Statial Package](https://www.bioconductor.org/packages/release/bioc/html/Statial.html)
 
 ### SpatioMark: Continuous changes in marker expression associated with varying levels of localisation.
 The first step in analysing these changes is to calculate the spatial proximity (`getDistances`) of each cell to every cell type. These values will then be stored in the `reducedDims` slot of the `SingleCellExperiment` object under the names distances. SpatioMark also provides functionality to look into proximal cell abundance using the `getAbundance()` function, which is further explored within the `Statial` package vignette
 
 
 ```{r getDistances}
-spe <- getDistances(spe,
+cells <- getDistances(cells,
   maxDist = 200,
   nCores = nCores,
   cellType = "cellType",
@@ -661,7 +666,7 @@ We can then visualise an example image, specified with `image = "F3"` and a part
 
 ```{r plotStateChange}
 p <- plotStateChanges(
-  cells = spe,
+  cells = cells,
   cellType = "cellType",
   spatialCoords = c("x", "y"),
   type = "distances",
@@ -683,7 +688,7 @@ SpatioMark aims to holistically uncover all such significant relationships by lo
 
 ```{r stateChanges}
 state_dist <- calcStateChanges(
-  cells = spe,
+  cells = cells,
   cellType = "cellType",
   type = "distances",
   assay = 2,
@@ -698,8 +703,8 @@ The results from our SpatioMark outputs can be converted from a `data.frame` to 
 
 ```{r spatioMarkOutcome}
 # Preparing outcome vector
-outcome <- spe$group[!duplicated(spe$imageID)]
-names(outcome) <- spe$imageID[!duplicated(spe$imageID)]
+outcome <- cells$group[!duplicated(cells$imageID)]
+names(outcome) <- cells$imageID[!duplicated(cells$imageID)]
 
 # Preparing features for Statial
 distMat <- prepMatrix(state_dist)
@@ -720,8 +725,8 @@ head(survivalResults)
 
 ```{r hierarchy}
 # Cluster cell type hierarchy
-hierarchy <- treekoR::getClusterTree(t(assay(spe, "norm")),
-                                     clusters = spe$cellType,
+hierarchy <- treekoR::getClusterTree(t(assay(cells, "norm")),
+                                     clusters = cells$cellType,
                                      hierarchy_method = "hopach")
 
 
@@ -735,7 +740,7 @@ hierarchy$clust_tree |>
 parentList$parent_4 = c(parentList$parent_2, parentList$parent_3)
 parentList$parent_5 = c(parentList$parent_1, "EC")
 
-all = unique(spe$cellType)
+all = unique(cells$cellType)
 
 # Create data frame with all pairwise combinations of cells
 treeDf = Statial::parentCombinations(all, parentList = parentList)
@@ -744,7 +749,7 @@ treeDf = Statial::parentCombinations(all, parentList = parentList)
 
 ```{r kontextual, eval = FALSE}
 kontext = Kontextual(
-  cells = spe,
+  cells = cells,
   cellType = "cellType",
   r = 50,
   parentDf = treeDf,
@@ -758,30 +763,6 @@ To save time we have saved the output of the results above.
 load(system.file("extdata", "kontextual.rda", package = "ScdneySpatial"))
 ```
 
-```{r}
-imageChoose = "H3"
-
-
-
-kontext
-
-spe |>
-  colData() |>
-  as.data.frame() |>
-  filter(imageID == imageChoose) |>
-  filter(cellType %in% c("SC", "TC_CD8", parentList$parent_4)) |>
-  mutate(cellType = case_when(
-    cellType %in% parentList$parent_4[parentList$parent_4 != "TC_CD8"] ~ "Immune",
-    TRUE ~ cellType
-  )) |> 
-  mutate(cellType = factor(cellType, levels = c("TC_CD8",  "SC", "Immune"))) |> 
-  arrange(desc(cellType)) |> 
-  ggplot(aes(x = x, y = y, color = cellType)) +
-  geom_point(size = 1) +
-  scale_colour_manual(values = c("SC" = "#404040", "TC_CD8" = "#E25758", "Immune" = "#D7D8D8")) +
-  guides(colour = guide_legend(title = "Cell types", override.aes = list(size = 3)))
-
-```
 
 We can use the `spicyR::spicy` to test for associations between the `Kontextual` values and progression status. To do so we use the `alternateResult` argument.
 
@@ -794,7 +775,7 @@ kontextMat[is.na(kontextMat)] <- 0
 
 # Test association with outcome
 kontextOutcome = spicyR::spicy(
-  cells = spe,
+  cells = cells,
   alternateResult = kontextMat,
   condition = "group",
   BPPARAM = BPPARAM
@@ -803,6 +784,32 @@ kontextOutcome = spicyR::spicy(
 # Plot results
 signifPlot(kontextOutcome)
 ```
+
+
+
+::: question
+**Questions**
+
+1. Compare this plot to the spicyR results previously using `signifPlot(spicyTest)`, how do Kontextual results compare to spicyR?
+2. What are the interpretation differences between spicyR and Kontextual?
+3. Use the `plotKontextual()` function to visualise some relationships (example below), is there anything that strikes out to you?
+:::
+
+```{r viewingKontextual, eval = FALSE}
+signifPlot(spicyTest)
+
+relationship = "TC_CD4__EC__parent_5"
+image = "G4"
+
+kontext |> 
+  filter(test == relationship)
+
+
+plotKontextual(relationship, imageChoose = image)
+
+```
+
+
 
 # ClassifyR: Patient classification
 
@@ -820,23 +827,24 @@ Our ClassifyR package formalises a convenient framework for evaluating classific
 data <- list()
 
 # Add proportions of each cell type in each image
-data[["Proportions"]] <- getProp(spe, "cellType")
+data[["Proportions"]] <- getProp(cells, "cellType")
+
 
 # Add pair-wise associations
-# spicyMat <- bind(spicyTest)
+# spicyMat <- data.frame(spicyTest$pairwiseAssoc)
 # spicyMat[is.na(spicyMat)] <- 0
 # spicyMat <- spicyMat |>
 #   select(!condition) |>
 #   tibble::column_to_rownames("imageID")
-# 
+# # 
 # data[["SpicyR"]] <- spicyMat
 
 # Add proportions of each region in each image to the list of dataframes.
-#data[["LisaClust"]] <- getProp(cells, "region")
+data[["LisaClust"]] <- getProp(cells, "region")
 
 
 # Add SpatioMark features
-#data[["SpatioMark"]] <- distMat
+data[["SpatioMark"]] <- distMat
 
 # Add Kontextual features
 data[["Kontextual"]] <- kontextMat
@@ -854,7 +862,7 @@ cv <- crossValidate(
   selectionMethod = "t-test",
   classifier = "LASSOGLM",
   nFolds = 5,
-  nFeatures = 50,
+  nFeatures = 20,
   nRepeats = 50,
   nCores = nCores
 )
