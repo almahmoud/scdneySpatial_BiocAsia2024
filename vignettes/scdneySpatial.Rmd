@@ -557,7 +557,7 @@ Put simply, spicyR uses the L-function to determine localisation or dispersion b
 Here, we quantify spatial relationships using a combination of 10 radii from 10 to 100 by specifying `Rs = 1:10*10` and account for global tissue structure using `sigma = 50`. Further information on how to optimise these parameters can be found in the [vignette](https://bioconductor.org/packages/release/bioc/vignettes/spicyR/inst/doc/spicyR.html) and the spicyR [paper](https://doi.org/10.1093/bioinformatics/btac268).
 
 
-```{r}
+```{r spicy}
 spicyTest <- spicy(cells,
                   condition = "group",
                   cellTypeCol = "cellType",
