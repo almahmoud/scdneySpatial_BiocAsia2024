@@ -152,7 +152,7 @@ options("restore_SingleCellExperiment_show" = TRUE)
 
 ### Download images
 
-Feel free to follow along for this section. Much of the segmentation pipeline is computationally demanding, and won't be able to run on the Bioconductor Galaxy servers.
+Feel free to follow along for this section. Much of the segmentation pipeline is computationally demanding, and most likely won't be able to run on the Bioconductor Galaxy servers.
 
 ```{r}
 # Reads images to cache in a directory specified by the pathToImages variable.
@@ -172,13 +172,8 @@ images <- cytomapper::loadImages(
 mcols(images) <- S4Vectors::DataFrame(imageID = names(images))
 ```
 
-### Clean channel names
-As we're reading the image channels directly from the names of the TIFF image, often these channel names will need to be cleaned for ease of downstream processing. 
-
-The channel names can be accessed from the `CytoImageList` object using the `channelNames()` function.
-
 ```{r}
-
+# Clean channel names
 cn <- channelNames(images) # Read in channel names
 head(cn)
 
@@ -190,10 +185,8 @@ channelNames(images) <- cn # Reassign channel names
 
 ```
 
-### Clean image names
-Similarly, the image names will be taken from the folder name containing the individual TIFF images for each channel. These will often also need to be cleaned. 
-
 ```{r}
+# Clean image names
 head(names(images))
 
 nam <- sapply(strsplit(names(images), "_"), `[`, 3)
@@ -204,6 +197,7 @@ mcols(images)[["imageID"]] <- nam # Reassigning image names
 ```
 
 ## SimpleSeg: Segmentation
+
 
 [SimpleSeg Package](https://www.bioconductor.org/packages/release/bioc/html/simpleSeg.html)
 
@@ -234,14 +228,6 @@ masks <- simpleSeg(images,
                    tissue = c("panCK", "CD45", "HH3"),
                    cores = nCores
                    )
-```
-
-### Visualise separation
-
-The `display` and `colorLabels` functions in `EBImage` make it very easy to examine the performance of the cell segmentation. The great thing about `display` is that if used in an interactive session it is very easy to zoom in and out of the image.
-
-```{r visualise segmentation}
-EBImage::display(colorLabels(masks[[1]]))
 ```
 
 ### Visualise outlines
@@ -282,7 +268,13 @@ plotPixels(image = images["F3"],
            ))
 ```
 
-### Summarise cell features.
+::: question
+**Questions**
+
+1. Is there any information we're not capturing with this segmentation?
+2. What parameters might you change to improve the segmentation?
+3. What are some intrinsic limitations of the simpleSeg method?
+:::
 
 In order to characterise the phenotypes of each of the segmented cells, `measureObjects()` from `cytomapper` will calculate the average intensity of each channel within each cell as well as a few morphological features. By default, the `measureObjects()` function will return a `SingleCellExperiment` object, where the channel intensities are stored in the `counts` assay and the spatial location of each cell is stored in `colData` in the `m.cx` and `m.cy` columns. 
 
@@ -299,11 +291,7 @@ cells <- cytomapper::measureObjects(masks,
 spatialCoordsNames(cells) <- c("x", "y")
 ```
 
-### Load the clinical data
-
-To associate features in our image with disease progression, it is important to read in information which links image identifiers to their progression status. We will do this here, making sure that our `imageID` match.
-
-#### Read the clinical data
+Next, to associate features in our image with disease progression, it is important to read in information which links image identifiers to their progression status. We will do this here, making sure that our `imageID` column matches.
 
 ```{r}
 clinical <- read.csv(
@@ -316,11 +304,6 @@ clinical <- read.csv(
 rownames(clinical) <- clinical$imageID
 clinical <- clinical[names(images), ]
 
-```
-
-#### Put the clinical data into the colData of SingleCellExperiment
-
-```{r}
 colData(cells) <- cbind(colData(cells), clinical[cells$imageID, ])
 ```
 
@@ -352,6 +335,12 @@ cells |>
   geom_density() + 
   theme(legend.position = "none")
 ```
+
+::: question
+**Questions**
+
+Can we see what is a CD3+ vs a CD3- cell here?
+:::
 
 ### Dimension reduction and visualisation
 
@@ -413,7 +402,11 @@ cells |>
   theme(legend.position = "none")
 ```
 
-We can also appreciate through the UMAP a reduction of the batch effect we initially saw.
+::: question
+**Questions**
+
+Can we see what is a CD3+ vs a CD3- cell here?
+:::
 
 ```{r}
 set.seed(51773)
@@ -435,12 +428,19 @@ scater::plotReducedDim(
 )
 ```
 
+::: question
+**Questions**
+
+1. What are we hoping to achieve with normalisation?
+2. What has changed between the pre-normalisation and post-normalisation correction UMAP?
+:::
+
 ## FuseSOM
 [FuseSOM Package](https://www.bioconductor.org/packages/release/bioc/html/FuseSOM.html)
 [FuseSOM Article](https://doi.org/10.1093/bioadv/vbad141)
 
 
-### Perform the clustering
+To dissect more information about cell interactions with each other, and cell-specific differences between groups, we next perform clustering. The `runFuseSOM()` function from the `FuseSOM` package conveniently runs clustering on any `SingleCellExperiment` object, by specifying the number of clusters under `numClusters`.
 
 ```{r FuseSOM}
 # Set seed.
@@ -462,6 +462,14 @@ We can also observe how reasonable our choice of `k = 10` was, using the `estima
 cells <- estimateNumCluster(cells, kSeq = 2:30)
 optiPlot(cells, method = "gap")
 ```
+
+::: question
+**Questions**
+
+1. Was our choice of `k = 10` a good choice?
+2. What other `k` might have made sense?
+3. From a biological perspective, what would increasing `k` do?
+:::
 
 ### Attempt to interpret the phenotype of each cluster
 
@@ -511,9 +519,7 @@ cells |>
 
 ```
 
-### Check cell type frequencies
-
-We find it always useful to check the number of cells in each cluster. Here we can see that cluster 10 contains lots of (most likely tumour - high expression of panCK and non-consistent expression of other markers) cells and cluster 4 contains very few cells.
+We find it always useful to check the number of cells in each cluster. 
 
 ```{r}
 # Check cell type frequencies.
@@ -521,6 +527,13 @@ cells$cellType |>
   table() |>
   sort()
 ```
+
+::: question
+**Questions**
+
+1. Does our distribution of cell types make sense?
+2. What would we normally expect as the most expressed cell type and the least expressed cell type for this dataset?
+:::
 
 We can also use the UMAP we computed earlier to visualise our data in a lower dimension and see how well our annotated cell types cluster out.
 
