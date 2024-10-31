@@ -26,7 +26,8 @@ Depends:
     tidyverse,
     SingleCellExperiment,
     cytomapper,
-    scater
+    scater,
+    glmnet
 Suggests: 
     knitr,
     rmarkdown,
