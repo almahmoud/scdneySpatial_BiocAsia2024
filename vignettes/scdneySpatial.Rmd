@@ -155,7 +155,7 @@ options("restore_SingleCellExperiment_show" = TRUE)
 
 Feel free to follow along for this section. Much of the segmentation pipeline is computationally demanding, and most likely won't be able to run on the Bioconductor Galaxy servers.
 
-```{r read-images}
+```{r read-images, eval = FALSE}
 # Reads images to cache in a directory specified by the pathToImages variable.
 pathToImages <- SpatialDatasets::Ferguson_Images()
 tmp <- tempfile() # Creates a temporary directory.
@@ -173,7 +173,7 @@ images <- cytomapper::loadImages(
 mcols(images) <- S4Vectors::DataFrame(imageID = names(images))
 ```
 
-```{r clean-channel-names}
+```{r clean-channel-names, eval = FALSE}
 # Clean channel names
 cn <- channelNames(images) # Read in channel names
 head(cn)
@@ -186,7 +186,7 @@ channelNames(images) <- cn # Reassign channel names
 
 ```
 
-```{r clean-image-names}
+```{r clean-image-names, eval = FALSE}
 # Clean image names
 head(names(images))
 
@@ -218,7 +218,7 @@ By setting `tissue = c("panCK", "CD45", "HH3")`, we specify a tissue mask which 
 
 There are many other parameters that can be specified in simpleSeg (`smooth`, `watershed`, `tolerance`, and `ext`), and we encourage the user to select the best parameters which suit their biological context.
 
-```{r simpleseg}
+```{r simpleseg, eval = FALSE}
 masks <- simpleSeg(images,
                    nucleus = c("HH3"),
                    pca = TRUE,
@@ -237,7 +237,7 @@ The `plotPixels` function in `cytomapper` makes it easy to overlay the mask on t
 
 If you see over or under-segmentation of your images, `discSize` is a key parameter in `simpleSeg()` for optimising the size of the dilation disc after segmenting out the nuclei.
 
-```{r see-seg-nuclei}
+```{r see-seg-nuclei, eval = FALSE}
 plotPixels(image = images["F3"], 
            mask = masks["F3"],
            img_id = "imageID", 
@@ -252,7 +252,7 @@ plotPixels(image = images["F3"],
 
 If you wish to visualise multiple markers instead of just the HH3 marker and see how the segmentation mask performs, this can also be done. Here, we can see that our segmentation mask has done a good job of capturing the CD31 signal, but perhaps not such a good job of capturing the FXIIIA signal, which often lies outside of our dilated nuclear mask. This could suggest that we might need to increase the `discSize` of our dilation.
 
-```{r see-seg-markers}
+```{r see-seg-markers, eval = FALSE}
 plotPixels(image = images["F3"], 
            mask = masks["F3"],
            img_id = "imageID", 
@@ -281,7 +281,7 @@ In order to characterise the phenotypes of each of the segmented cells, `measure
 
 However, you can also specify `measureObjects()` to return a `SpatialExperiment` object by specifying `return_as = "spe"`. As a `SpatialExperiment` object, the spatial location of each cell is stored in the `spatialCoords` slot, as `m.cx` and `m.cy`, which simplifies plotting. In this demonstration, we will return a `SpatialExperiment` object.
 
-```{r measureobjects}
+```{r measureobjects, eval = FALSE}
 # Summarise the expression of each marker in each cell
 cells <- cytomapper::measureObjects(masks,
                                     images,
@@ -294,7 +294,7 @@ spatialCoordsNames(cells) <- c("x", "y")
 
 Next, to associate features in our image with disease progression, it is important to read in information which links image identifiers to their progression status. We will do this here, making sure that our `imageID` column matches.
 
-```{r clinical}
+```{r clinical, eval = FALSE}
 clinical <- read.csv(
   system.file(
     "extdata/clinicalData_TMA1_2021_AF.csv",
