@@ -24,7 +24,9 @@ Depends:
     ClassifyR,
     tidySingleCellExperiment,
     tidyverse,
-    SingleCellExperiment
+    SingleCellExperiment,
+    cytomapper,
+    scater
 Suggests: 
     knitr,
     rmarkdown,
