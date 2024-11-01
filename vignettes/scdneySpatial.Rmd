@@ -548,17 +548,15 @@ scater::plotReducedDim(
 )
 ```
 
-
 ## spicyR: Test spatial relationships
 
 [spicyR Package](https://www.bioconductor.org/packages/release/bioc/html/spicyR.html)
+[spicyR paper](https://doi.org/10.1093/bioinformatics/btac268)
 
-Put simply, spicyR uses the L-function to determine localisation or dispersion between cell types. The L-function is an arbitrary measure of "closeness" between points, with larger values suggesting increased localisation or attraction, and lower values suggesting dispersion or avoidance between cell types.
-
-Here, we quantify spatial relationships using a combination of 10 radii from 10 to 100 by specifying `Rs = 1:10*10` and account for global tissue structure using `sigma = 50`. Further information on how to optimise these parameters can be found in the [vignette](https://bioconductor.org/packages/release/bioc/vignettes/spicyR/inst/doc/spicyR.html) and the spicyR [paper](https://doi.org/10.1093/bioinformatics/btac268).
+spicyR uses the L-function to determine localisation or dispersion between cell types. The L-function measures attraction or dispersion between cell types, with larger values (> 0) suggesting increased attraction, and lower values (< 0) suggesting avoidance between cell types. We specify a range of radii to calculate the L-function over and set `sigma = 50` to account for tissue inhomogeneity.
 
 
-```{r spicy}
+```{r spicy eval = FALSE}
 spicyTest <- spicy(cells,
                   condition = "group",
                   cellTypeCol = "cellType",
@@ -566,28 +564,46 @@ spicyTest <- spicy(cells,
                   Rs = 1:10*10,
                   sigma = 50,
                   BPPARAM = BPPARAM)
+```
 
+::: question
+**Questions**
+1. What does an L-function value of 0 suggest?
+2. How would you choose the optimal radii (`Rs`) for a given dataset?
+:::
+
+To save time we have saved the output of the above code.
+
+```{r topPairs spicy}
+load(system.file("extdata", "spicyTest.rda", package = "scdneySpatialBiocAsia2024"))
 topPairs(spicyTest, n = 10)
 ```
 
-We can visualise these tests using `signifPlot` where we observe that cell type pairs appear to become less attractive (or avoid more) in the progression sample.
+We can visualise these tests using the `signifPlot` function.
 
-```{r}
+```{r signifPlot}
 # Visualise which relationships are changing the most.
-signifPlot(spicyTest)
+signifPlot(spicyTest,
+           fdr = TRUE)
 ```
 
-`spicyR` also has functionality for plotting out individual pairwise relationships. We can first try look into whether the `SC` tumour cell type localises with the `GC` granular cell type, and whether this localisation affects progression vs non-progression of the tumour. 
+::: question
+**Questions**
+1. Which cell types appear to have significant co-localistion/dispersion?
+2. Does this align with what we might expect to see in a biological context?
+:::
 
-```{r}
+`spicyR` also has functionality for plotting out individual pairwise relationships.
+
+```{r spicyBoxPlot}
 spicyBoxPlot(spicyTest, 
-             from = "SC", 
-             to = "GC")
+             from = "BC", 
+             to = "EC")
 ```
 
 Alternatively, we can look at the most differentially localised relationship between progressors and non-progressors by specifying `rank = 1`.
 
-```{r}
+```{r spicyBoxPlot with rank}
 spicyBoxPlot(spicyTest, 
              rank = 1)
 ```
@@ -595,45 +611,49 @@ spicyBoxPlot(spicyTest,
 ## lisaClust: Find cellular neighbourhoods
 
 [lisaClust Package](https://www.bioconductor.org/packages/release/bioc/html/lisaClust.html)
-[lisaClust Article](https://doi.org/10.1002/cyto.a.24729)
+[lisaClust paper](https://doi.org/10.1002/cyto.a.24729)
 
 
-`lisaClust` provides a series of functions to identify and visualise regions of tissue where spatial associations between cell-types is similar. This package can be used to provide a high-level summary of cell-type co-localisation in multiplexed imaging data that has been segmented at a single-cell resolution. Here we use the `lisaClust` function to clusters cells into 5 regions with distinct spatial ordering. 
+`lisaClust` allows us to identify regions where spatial associations between cell types is similar. Here we use the `lisaClust` function to clusters cells into 5 regions with distinct spatial ordering. 
 
-```{r}
+```{r lisaClust, eval = FALSE}
 set.seed(51773)
 
 cells <- lisaClust(
   cells,
-  k = 4,
+  k = 5,
   sigma = 50,
   cellType = "cellType",
   BPPARAM = BPPARAM
 )
 ```
 
+To save time the results of the above code have been saved and can be loaded in.
+
 ### Region - cell type enrichment heatmap
 
-We can interpret which spatial orderings the regions are quantifying using the `regionMap` function. This plots the frequency of each cell type in a region relative to what you would expect by chance. We can see here that our regions have neatly separated according to biological milieu, with region 1 and 2 representing our immune cell regions, region 3 representing our tumour cells, and region 4 representing our healthy epithelial and endothelial cells.
+We can interpret which spatial orderings the regions are quantifying using the `regionMap` function. This plots the frequency of each cell type in a region relative to what you would expect by chance.
 
-```{r}
+```{r regionMap}
+load(system.file("extdata", "lisaClustResults.rda", package = "scdneySpatialBiocAsia2024"))
+
 # Visualise the enrichment of each cell type in each region
 regionMap(cells, cellType = "cellType", limit = c(0.2, 2))
 ```
 
 ### Visualise regions
 
-By default, these identified regions are stored in the `regions` column in the `colData` of our `SpatialExperiment` object. We can quickly examine the spatial arrangement of these regions using `ggplot` on image F3, where we can see the same division of immune, healthy, and tumour tissue that we identified in our `regionMap`.
+By default, these identified regions are stored in the `regions` column in the `colData` of our `SpatialExperiment` object. We can quickly examine the spatial arrangement of these regions using `ggplot` on image F3.
 
-```{r, message=FALSE, warning=FALSE}
+```{r plotReducedDim, message=FALSE, warning=FALSE}
 cells |> 
   filter(imageID == "F3") |> 
   plotReducedDim("spatialCoords", colour_by = "region")
 ```
 
-While much slower, we have also implemented a function for overlaying the region information as a hatching pattern so that the information can be viewed simultaneously with the cell type calls.
+While much slower, the `hatchingPlot` function can also be used to view regions of co-localisation simultaneously with the cell type calls.
 
-```{r}
+```{r hatchingPlot}
 # Use hatching to visualise regions and cell types.
 hatchingPlot(
   cells,
@@ -643,9 +663,15 @@ hatchingPlot(
 )
 ```
 
+::: question
+**Questions**
+1. How could the choice of `k` affect our clustering results?
+2. Looking at the graph above, would a different value of `k` be better?
+:::
+
 ### Test for association with progression
 
-Similar to cell type proportions, we can quickly use the `colTest` function to test for associations between the proportions of cells in each region and progression status by specifying `feature = "region"`.
+We can use the `colTest` function to test for associations between the proportions of cells in each region and progression status.
 
 ```{r}
 # Test if the proportion of each region is associated
@@ -658,6 +684,12 @@ testRegion <- colTest(
 
 testRegion
 ```
+
+::: question
+**Questions**
+1. How could results from `lisaClust` be used in conjunction with results from `spicyR`?
+:::
+
 
 ## Statial
 
