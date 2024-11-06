@@ -27,9 +27,9 @@ Depends:
     SingleCellExperiment,
     cytomapper,
     scater,
-    glmnet
+    glmnet,
+    knitr
 Suggests: 
-    knitr,
     rmarkdown,
     pkgdown
 URL: https://sydneybiox.github.io/scdneySpatial_BiocAsia2024/

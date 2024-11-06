@@ -171,6 +171,7 @@ library(SingleCellExperiment)
 library(cytomapper)
 library(scater)
 library(glmnet)
+library(knitr)
 
 theme_set(theme_classic())
 
