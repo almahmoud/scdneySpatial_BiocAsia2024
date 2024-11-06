@@ -898,6 +898,12 @@ data[["SpatioMark"]] <- distMat
 data[["Kontextual"]] <- kontextMat
 ```
 
+We have saved the data list for convenience.
+
+```{r loadDataMat}
+load(system.file("extdata", "kontext.rda", package = "scdneySpatialBiocAsia2024"))
+```
+
 
 ```{r classification}
 # Set seed
