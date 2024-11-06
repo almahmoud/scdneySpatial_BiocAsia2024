@@ -13,6 +13,24 @@ editor_options:
     wrap: 72
 ---
 
+```{r}
+knitr::knit_hooks$set(time_it = local({
+  now <- NULL
+  function(before, options) {
+    if (before) {
+      # record the current time before each chunk
+      now <<- Sys.time()
+    } else {
+      # calculate the time difference after a chunk
+      res <- difftime(Sys.time(), now, units = "secs")
+      # return a character string to show the time
+      paste("Time for this code chunk to run:", round(res,
+        2), "seconds")
+    }
+  }
+}))
+```
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   #collapse = TRUE,
@@ -20,7 +38,8 @@ knitr::opts_chunk$set(
   comment = "#>",
   cache = FALSE,
   message = FALSE,
-  warning = FALSE
+  warning = FALSE,
+  time_it = TRUE
 )
 ```
 
@@ -288,6 +307,10 @@ plotPixels(image = images["F3"],
            ))
 ```
 
+```{r seg-nuclei-image, echo = FALSE}
+knitr::include_graphics(system.file("images", "see-seg-nuclei-1.png", package = "scdneySpatialBiocAsia2024"))
+```
+
 If you wish to visualise multiple markers instead of just the HH3 marker
 and see how the segmentation mask performs, this can also be done. Here,
 we can see that our segmentation mask has done a good job of capturing
@@ -310,6 +333,10 @@ plotPixels(image = images["F3"],
              CD31 = c(0, 1, 2),
              FX111A = c(0, 1, 1.5)
            ))
+```
+
+```{r seg-markers-image, echo = FALSE}
+knitr::include_graphics(system.file("images", "see-seg-markers-1.png", package = "scdneySpatialBiocAsia2024"))
 ```
 
 ::: question
