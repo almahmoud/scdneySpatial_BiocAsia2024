@@ -3,3 +3,5 @@ inst/doc
 .Rproj.user
 *Rproj
 inst/extdata/multiCV.rda
+/doc/
+/Meta/

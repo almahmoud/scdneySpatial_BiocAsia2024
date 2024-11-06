@@ -662,7 +662,7 @@ attraction, and lower values (\< 0) suggesting avoidance between cell
 types. We specify a range of radii to calculate the L-function over and
 set `sigma = 50` to account for tissue inhomogeneity.
 
-```{r spicy eval = FALSE}
+```{r spicy, eval = FALSE}
 spicyTest <- spicy(cells,
                   condition = "group",
                   cellTypeCol = "cellType",
@@ -726,7 +726,7 @@ Package](https://www.bioconductor.org/packages/release/bioc/html/lisaClust.html)
 between cell types is similar. Here we use the `lisaClust` function to
 clusters cells into 5 regions with distinct spatial ordering.
 
-```{r lisaClust, eval = FALSE}
+```{r lisaClust}
 set.seed(51773)
 
 cells <- lisaClust(
@@ -749,8 +749,6 @@ using the `regionMap` function. This plots the frequency of each cell
 type in a region relative to what you would expect by chance.
 
 ```{r regionMap}
-load(system.file("extdata", "lisaClustResults.rda", package = "scdneySpatialBiocAsia2024"))
-
 # Visualise the enrichment of each cell type in each region
 regionMap(cells, cellType = "cellType", limit = c(0.2, 2))
 ```
@@ -988,7 +986,7 @@ signifPlot(kontextOutcome)
     (example below), is there anything that strikes out to you?
 :::
 
-```{r viewingKontextual, eval = FALSE}
+```{r viewingKontextual}
 spicyR::signifPlot(spicyTest)
 
 relationship = "TC_CD4__EC__parent_5"
@@ -1057,7 +1055,7 @@ We have saved the data list and outcomes for convenience.
 load(system.file("extdata", "data.rda", package = "scdneySpatialBiocAsia2024"))
 ```
 
-```{r classification}
+```{r classification, eval = FALSE}
 # Set seed
 set.seed(51773)
 
@@ -1109,7 +1107,10 @@ samplesMetricMap(cv) |>
 
 ```
 
+The following code chunk demonstrates how we might use information from multiple matrices to perform classification.
+
 ```{r multiViewClassification, eval = FALSE}
+# DO NOT RUN
 multiCV <- ClassifyR::crossValidate(
   measurements = data,
   outcome = outcome,
@@ -1130,4 +1131,9 @@ plot = performancePlot(
 
 ```
 
-<img src="images/plot.png" style="border: 0px"/>
+
+```{r multiCVPlot}
+knitr::include_graphics(system.file("images", "plot.png", package = "scdneySpatialBiocAsia2024"))
+```
+
+
