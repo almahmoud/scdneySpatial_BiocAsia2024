@@ -1,4 +1,4 @@
-FROM bioconductor/bioconductor_docker:3.20
+FROM bioconductor/bioconductor_docker:3.19
 
 WORKDIR /home/rstudio
 
