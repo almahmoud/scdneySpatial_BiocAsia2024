@@ -626,6 +626,7 @@ cells <- lisaClust(
   cellType = "cellType",
   BPPARAM = BPPARAM
 )
+
 ```
 
 To save time the results of the above code have been saved and can be loaded in.
@@ -795,7 +796,7 @@ treeDf = Statial::parentCombinations(all, parentList = parentList)
 ```
 
 ```{r kontextual, eval = FALSE}
-kontext = Kontextual(
+kontext = Statial::Kontextual(
   cells = cells,
   cellType = "cellType",
   r = 50,
@@ -815,7 +816,7 @@ We can use the `spicyR::spicy` to test for associations between the `Kontextual`
 
 ```{r kontextOutcome, fig.height = 5, fig.width = 10}
 # Converting Kontextual result into data matrix
-kontextMat <- prepMatrix(kontext)
+kontextMat <- Statial::prepMatrix(kontext)
 
 # Replace NAs with 0
 kontextMat[is.na(kontextMat)] <- 0
@@ -843,7 +844,7 @@ signifPlot(kontextOutcome)
 :::
 
 ```{r viewingKontextual, eval = FALSE}
-signifPlot(spicyTest)
+spicyR::signifPlot(spicyTest)
 
 relationship = "TC_CD4__EC__parent_5"
 image = "G4"
@@ -851,7 +852,7 @@ image = "G4"
 kontext |> 
   filter(test == relationship)
 
-
+# Function from inst/extdata/utils.R file
 plotKontextual(relationship, imageChoose = image)
 
 ```
@@ -867,7 +868,7 @@ Package](https://www.bioconductor.org/packages/release/bioc/html/ClassifyR.html)
 article](https://academic.oup.com/bioinformatics/article/31/11/1851/2365648?login=false)
 
 
-Our ClassifyR package formalises a convenient framework for evaluating classification in R. We provide functionality to easily include four key modelling stages; Data transformation, feature selection, classifier training and prediction; into a cross-validation loop. Here we use the `crossValidate` function to perform 50 repeats of 5-fold cross-validation to evaluate the performance of a random forest applied to five quantifications of our IMC data; 1) Cell type proportions 2) Cell type localisation from `spicyR` 3) Region proportions from `lisaClust` 4) Cell type localisation in reference to a parent cell type from `Kontextual` 5) Cell changes in response to proximal changes from `SpatioMark`
+Our ClassifyR package formalises a convenient framework for evaluating classification in R. We provide functionality to easily include four key modelling stages; Data transformation, feature selection, classifier training and prediction; into a cross-validation loop. Here we use the `crossValidate` function to perform 50 repeats of 5-fold cross-validation to evaluate the performance of a model (`classifier`) with feature selection (`selectionMethod`) applied to five quantifications of our IMC data; 1) Cell type proportions 2) Cell type localisation from `spicyR` 3) Region proportions from `lisaClust` 4) Cell type localisation in reference to a parent cell type from `Kontextual` 5) Cell changes in response to proximal changes from `SpatioMark`
 
 ```{r features}
 # Create list to store data.frames
@@ -903,7 +904,7 @@ data[["Kontextual"]] <- kontextMat
 set.seed(51773)
 
 # Perform 5-fold cross-validation with 50 repeats.
-cv <- crossValidate(
+cv <- ClassifyR::crossValidate(
   measurements = data,
   outcome = outcome,
   selectionMethod = "t-test",
@@ -940,13 +941,11 @@ performancePlot(
 
 
 ```{r sampleMetrics}
-samplesMetricMap(cv) |> 
-  plot()
-
+metricMap = samplesMetricMap(cv)
 ```
 
 
-```{r multiViewClassification}
+```{r multiViewClassification, eval = FALSE}
 cv <- crossValidate(
   measurements = data,
   outcome = outcome,
