@@ -38,8 +38,7 @@ knitr::opts_chunk$set(
   comment = "#>",
   cache = FALSE,
   message = FALSE,
-  warning = FALSE,
-  time_it = FALSE
+  warning = FALSE
 )
 ```
 
@@ -1140,8 +1139,7 @@ performancePlot(
 :::
 
 ```{r sampleMetrics}
-samplesMetricMap(cv) |> 
-  plot()
+samplesMetricMap(cv)
 
 ```
 
