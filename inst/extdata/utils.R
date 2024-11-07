@@ -1,9 +1,10 @@
 
-
-
+#' @import tidyverse
+#' @import tidySingleCellExperiment
+#' @import SingleCellExperiment
 plotKontextual = function(test, imageChoose) {
   
-  test_split = str_split(test, "__")[[1]]
+  test_split = stringr::str_split(test, "__")[[1]]
   to = test_split[[1]]
   from = test_split[[2]]
   parent = parentList[[test_split[[3]]]]
