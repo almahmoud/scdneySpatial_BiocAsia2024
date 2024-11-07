@@ -1164,4 +1164,6 @@ plot = performancePlot(
 knitr::include_graphics(system.file("images", "plot.png", package = "scdneySpatialBiocAsia2024"))
 ```
 
-
+```{r}
+sessionInfo()
+```
