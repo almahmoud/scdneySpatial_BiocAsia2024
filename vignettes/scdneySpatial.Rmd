@@ -307,9 +307,7 @@ plotPixels(image = images["F3"],
            ))
 ```
 
-```{r seg-nuclei-image, echo = FALSE}
-knitr::include_graphics(system.file("images", "see-seg-nuclei-1.png", package = "scdneySpatialBiocAsia2024"))
-```
+<img src="man/figures/see-seg-nuclei-1.png" style="border: 0px"/>
 
 If you wish to visualise multiple markers instead of just the HH3 marker
 and see how the segmentation mask performs, this can also be done. Here,
@@ -335,9 +333,7 @@ plotPixels(image = images["F3"],
            ))
 ```
 
-```{r seg-markers-image, echo = FALSE}
-knitr::include_graphics(system.file("images", "see-seg-markers-1.png", package = "scdneySpatialBiocAsia2024"))
-```
+<img src="man/figures/see-seg-markers-1.png" style="border: 0px"/>
 
 ::: question
 **Questions**
@@ -1173,10 +1169,8 @@ plot = performancePlot(
 
 ```
 
+<img src="man/figures/plot.png" style="border: 0px"/>
 
-```{r multiCVPlot}
-knitr::include_graphics(system.file("images", "plot.png", package = "scdneySpatialBiocAsia2024"))
-```
 
 # Session Information
 
