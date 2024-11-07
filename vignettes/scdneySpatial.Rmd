@@ -306,7 +306,7 @@ plotPixels(image = images["F3"],
            ))
 ```
 
-<img src="man/figures/see-seg-nuclei-1.png" style="border: 0px"/>
+<img src="images/see-seg-nuclei-1.png" style="border: 0px"/>
 
 If you wish to visualise multiple markers instead of just the HH3 marker
 and see how the segmentation mask performs, this can also be done. Here,
@@ -332,7 +332,7 @@ plotPixels(image = images["F3"],
            ))
 ```
 
-<img src="man/figures/see-seg-markers-1.png" style="border: 0px"/>
+<img src="images/see-seg-markers-1.png" style="border: 0px"/>
 
 ::: question
 **Questions**
@@ -1167,7 +1167,7 @@ plot = performancePlot(
 
 ```
 
-<img src="man/figures/plot.png" style="border: 0px"/>
+<img src="images/plot.png" style="border: 0px"/>
 
 
 # Session Information
